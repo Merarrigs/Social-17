@@ -17,7 +17,7 @@ export const createUser = async (req, res) => {
         res.status(500).json(err);
     }
 };
-export const getUserById = async (req, res) => {
+export const getSoloUser = async (req, res) => {
     try {
         const user = await User.findById(req.params.userId).populate('thoughts');
         if (!user) {
@@ -33,16 +33,21 @@ export const getUserById = async (req, res) => {
 };
 export const updateUser = async (req, res) => {
     try {
-        const user = await User.findByIdAndUpdate(req.params.userId, { $set: req.body }, { new: true });
+        const user = await User.findByIdAndUpdate(req.params.userId, req.body, { new: true, runValidators: true });
+        if (!user) {
+            res.status(404).json({ message: 'No user with that ID' });
+            return;
+        }
         res.json(user);
     }
     catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: 'something went wrong' });
     }
 };
 export const deleteUser = async (req, res) => {
+    const { pickUser } = req.params;
     try {
-        const result = await User.findByIdAndDelete(req.params.userId);
+        const result = await User.findByIdAndDelete({ _id: pickUser });
         res.status(200).json(result);
         console.log(`user: ${result} deleted`);
     }
